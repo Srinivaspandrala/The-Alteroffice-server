@@ -16,9 +16,14 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use(express.static(path.join(__dirname, '../server/build')));
 
+db.serialize(() => {
+  db.run("CREATE TABLE IF NOT EXISTS posts1 (id INTEGER PRIMARY KEY, title TEXT, content TEXT, image_url TEXT,Description TEXT,videourl TEXT,author TEXT,date DATE	)");
+});
+
+
 // API Routes
 app.get('/posts', (req, res) => {
-  db.all('SELECT * FROM posts', [], (err, rows) => {
+  db.all('SELECT * FROM posts1', [], (err, rows) => {
     if (err) {
       res.status(500).json({ error: err.message });
       return;
@@ -29,7 +34,7 @@ app.get('/posts', (req, res) => {
 
 app.get('/posts/:id', (req, res) => {
   const { id } = req.params;
-  db.get('SELECT * FROM posts WHERE id = ?', [id], (err, row) => {
+  db.get('SELECT * FROM posts1 WHERE id = ?', [id], (err, row) => {
     if (err) {
       res.status(500).json({ error: err.message });
       return;
@@ -43,14 +48,13 @@ app.get('/posts/:id', (req, res) => {
 });
 
 app.post('/posts', (req, res) => {
-  const { title, content, image_url } = req.body;
+  const { title, content, image_url,Description,videourl,author,date} = req.body;
   if (!title || !content) {
     res.status(400).json({ error: 'Title and content are required' });
     return;
   }
-
-  const query = 'INSERT INTO posts (title, content, image_url) VALUES (?, ?, ?)';
-  db.run(query, [title, content, image_url], function (err) {
+  const query = 'INSERT INTO posts1 (title, content, image_url,Description,videourl,author,date) VALUES (?, ?, ?,?,?,?,?)';
+  db.run(query, [title, content, image_url,Description,videourl,author,date], function (err) {
     if (err) {
       res.status(500).json({ error: err.message });
       return;
@@ -98,9 +102,6 @@ app.delete('/posts/:id', (req, res) => {
   });
 });
 
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../server/build', 'index.html'));
-});
 
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
